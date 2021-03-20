@@ -1,7 +1,7 @@
 import logging
 from env import DISCORD_TOKEN
 
-logger = logging.getLogger(__name__)
+logger = logging.getLogger("sync-ytchat")
 ch = logging.StreamHandler()
 formatter = logging.Formatter(
         "%(asctime)s - %(name)s - %(levelname)s - %(message)s")

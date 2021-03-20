@@ -33,7 +33,7 @@ def discord_notify(channel):
                               description=text,
                               timestamp=dtime)
         # thumbnail
-        embed.set_image(url=c.author.imageUrl)
+        embed.set_thumbnail(url=c.author.imageUrl)
         # send
         await client.guilds[0].get_channel(channel).send(embed=embed)
     return send

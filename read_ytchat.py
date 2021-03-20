@@ -75,7 +75,7 @@ class YTchats:
                 break
 
             logger.info("check: " + ",".join([i.id for i in self.videos]))
-            await asyncio.sleep(3)
+            await asyncio.sleep(10)
 
 
 if __name__ == "__main__":
