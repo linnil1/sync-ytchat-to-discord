@@ -1,14 +1,21 @@
-from pytchat import LiveChatAsync
 import asyncio
+import os
+from pytchat import LiveChatAsync
 from setup import logger
 
 
 class YTchat:
-    def __init__(self, id, func_send, only_money=False):
-        self.id = id
+    def __init__(self, id, func_send, normal_msg=False,
+                 save=False, live=True):
         self.livechat = LiveChatAsync(id, callback=self.post)
-        self.only_money = only_money
+        self.id = id
+        self.normal_msg = normal_msg
         self.send = func_send
+        self.save = save
+        self.live = live
+        self.folder = "chat/"
+        if save:
+            os.makedirs(self.folder, exist_ok=True)
         logger.info(id + " is added")
 
     def is_alive(self):
@@ -23,11 +30,17 @@ class YTchat:
         return self.livechat.raise_for_status()
 
     async def post(self, chatdata):
+        logger.debug("test")
         for c in chatdata.items:
-            if not (c.type == "textMessage" and self.only_money):
+            if self.save:
+                open(self.folder + self.id + ".data", "a").write(c.json() + "\n")
+
+            if c.type != "textMessage" or self.normal_msg:
                 logger.debug("send " + str(c.json()))
                 await self.send(c)
-            await chatdata.tick_async()
+
+            if self.live:
+                await chatdata.tick_async()
 
 
 async def console_print(c, text_only=False):
@@ -42,8 +55,8 @@ class YTchats:
     def __init__(self):
         self.videos = []
 
-    def add_video(self, id, func_send=console_print):
-        chat = YTchat(id, func_send, True)
+    def add_video(self, id, func_send=console_print, **kwargs):
+        chat = YTchat(id, func_send, **kwargs)
         self.videos.append(chat)
 
     async def remove_video(self, id):
@@ -81,6 +94,6 @@ class YTchats:
 if __name__ == "__main__":
     chats = YTchats()
     # chats.add_video("BJlB8bD0dSI")
-    chats.add_video("fok5dkdbz4A")
+    chats.add_video("fok5dkdbz4A", save=True, live=False)
     loop = asyncio.get_event_loop()
     loop.run_until_complete(chats.main(allow_empty=False))
