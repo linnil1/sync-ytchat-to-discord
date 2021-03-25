@@ -1,11 +1,15 @@
 import discord
 from read_ytchat import YTchats
 from datetime import datetime
-
+import argparse
 from setup import logger, DISCORD_TOKEN
 
 client = discord.Client()
 chats = YTchats()
+parser = argparse.ArgumentParser(description="Sync YTchat to Discord",
+                                 usage=".synchat {start,stop} [id]")
+parser.add_argument('method', choices=["start", "stop"])
+parser.add_argument('id', nargs="?", help="youtube_video_id")
 
 
 @client.event
@@ -39,17 +43,6 @@ def discord_notify(channel):
     return send
 
 
-def read_arg(content):
-    sp = content.split(" ")
-    if len(sp) < 2:
-        return None, None
-    videoid = sp[2].strip()
-    if len(videoid):
-        return sp[1].strip(), videoid
-    else:
-        return None, None
-
-
 @client.event
 async def on_message(message):
     # Only read command from author
@@ -58,9 +51,22 @@ async def on_message(message):
     if not message.content.startswith(".synchat"):
         return
 
+    # if no args
+    if not message.content.startswith(".synchat "):
+        await message.channel.send("```" + parser.format_help() + "```")
+        return
+
     # read command and videoid
     logger.debug(message.content)
-    method, id = read_arg(message.content)
+    try:
+        args = parser.parse_args(message.content.split()[1:])
+    except BaseException as e:
+        # Fix this in Python3.9
+        logger.warning(str(type(e)) + str(e))
+        await message.channel.send("```" + parser.format_help() + "```")
+        return
+
+    method, id = args.method, args.id
     if id is None:
         await message.channel.send("Fail: No video ID provieded")
         return
@@ -70,7 +76,7 @@ async def on_message(message):
         dc_channel = message.channel.id
         logger.info(f"Sync {id} to {dc_channel}")
         try:
-            chats.add_video(id, discord_notify(dc_channel))
+            chats.add_video(id, discord_notify(dc_channel), save=True)
             await message.channel.send(f"OK {id}")
         except BaseException as e:
             logger.warning(str(type(e)) + str(e))

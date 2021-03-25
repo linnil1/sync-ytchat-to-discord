@@ -33,7 +33,8 @@ class YTchat:
         logger.debug("test")
         for c in chatdata.items:
             if self.save:
-                open(self.folder + self.id + ".data", "a").write(c.json() + "\n")
+                with open(self.folder + self.id + ".data", "a") as f:
+                    f.write(c.json() + "\n")
 
             if c.type != "textMessage" or self.normal_msg:
                 logger.debug("send " + str(c.json()))

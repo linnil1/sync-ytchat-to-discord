@@ -1,3 +1,4 @@
+chat/
 *.swp
 env.py
 __pycache__
