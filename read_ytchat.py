@@ -5,10 +5,14 @@ from setup import logger
 
 
 class YTchat:
-    def __init__(self, id, func_send, normal_msg=False,
+    def __init__(self, ytid, chid, func_send, normal_msg=False,
                  save=False, live=True):
-        self.livechat = LiveChatAsync(id, callback=self.post)
-        self.id = id
+        self.livechat = LiveChatAsync(ytid, callback=self.post)
+        if chid:
+            self.id = chid + "." + ytid
+        else:
+            self.id = ytid
+        self.ytid = ytid
         self.normal_msg = normal_msg
         self.send = func_send
         self.save = save
@@ -16,7 +20,7 @@ class YTchat:
         self.folder = "chat/"
         if save:
             os.makedirs(self.folder, exist_ok=True)
-        logger.info(id + " is added")
+        logger.info(self.id + " is added")
 
     def is_alive(self):
         return self.livechat.is_alive()
@@ -56,14 +60,16 @@ class YTchats:
     def __init__(self):
         self.videos = []
 
-    def add_video(self, id, func_send=console_print, **kwargs):
-        chat = YTchat(id, func_send, **kwargs)
+    def add_video(self, id, channel="", func_send=console_print, **kwargs):
+        chat = YTchat(id, channel, func_send, **kwargs)
         self.videos.append(chat)
 
-    async def remove_video(self, id):
+    async def remove_video(self, id, channel=""):
+        if channel:
+            id = channel + "." + id
         videos = []
         for chat in self.videos:
-            logger.debug(f"{chat.id} {id}")
+            logger.debug(f"Remove {chat.id}")
             if chat.id == id:
                 await chat.close()
             else:
@@ -81,9 +87,9 @@ class YTchats:
                 if not chat.is_alive():
                     fin_chat.append(chat.id)
 
-            # remove finish
+            # remove offline stream
             for id in fin_chat:
-                await self.remove_video(id)
+                await self.remove_video(chat.id)
 
             if len(self.videos) == 0 and not allow_empty:
                 break
@@ -94,7 +100,6 @@ class YTchats:
 
 if __name__ == "__main__":
     chats = YTchats()
-    # chats.add_video("BJlB8bD0dSI")
-    chats.add_video("fok5dkdbz4A", save=True, live=False)
+    chats.add_video("fok5dkdbz4A", "123", save=True, live=False)
     loop = asyncio.get_event_loop()
     loop.run_until_complete(chats.main(allow_empty=False))

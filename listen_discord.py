@@ -1,15 +1,11 @@
 import discord
 from read_ytchat import YTchats
 from datetime import datetime
-import argparse
-from setup import logger, DISCORD_TOKEN
+from setup import DISCORD_TOKEN, setup_parser, logger
 
 client = discord.Client()
 chats = YTchats()
-parser = argparse.ArgumentParser(description="Sync YTchat to Discord",
-                                 usage=".synchat {start,stop} [id]")
-parser.add_argument('method', choices=["start", "stop"])
-parser.add_argument('id', nargs="?", help="youtube_video_id")
+parser = setup_parser()
 
 
 @client.event
@@ -22,7 +18,7 @@ async def on_ready():
 def discord_notify(channel):
     async def send(c, text_only=False):
         if text_only:
-            await client.guilds[0].get_channel(channel).send(c)
+            await client.get_channel(channel).send(c)
             return
 
         # If new member: message = join message
@@ -31,21 +27,21 @@ def discord_notify(channel):
         else:
             text = f"[{c.message}]"
         dtime = datetime.utcfromtimestamp(c.timestamp / 1000)
-        # name, color and time
+        # name, color(ARGB) and time
         embed = discord.Embed(title=c.author.name,
-                              colour=c.bgColor % 0x1000000,  # no A channel
+                              colour=c.bgColor % 0x1000000,
                               description=text,
                               timestamp=dtime)
         # thumbnail
         embed.set_thumbnail(url=c.author.imageUrl)
         # send
-        await client.guilds[0].get_channel(channel).send(embed=embed)
+        await client.get_channel(channel).send(embed=embed)
     return send
 
 
 @client.event
 async def on_message(message):
-    # Only read command from author
+    # Only read command exclude bot itself
     if message.author == client.user:
         return
     if not message.content.startswith(".synchat"):
@@ -67,16 +63,16 @@ async def on_message(message):
         return
 
     method, id = args.method, args.id
+    dc_channel = message.channel.id
     if id is None:
         await message.channel.send("Fail: No video ID provieded")
         return
 
     # start to monitor
     if method == "start":
-        dc_channel = message.channel.id
         logger.info(f"Sync {id} to {dc_channel}")
         try:
-            chats.add_video(id, discord_notify(dc_channel), save=True)
+            chats.add_video(id, dc_channel, discord_notify(dc_channel), save=True)
             await message.channel.send(f"OK {id}")
         except BaseException as e:
             logger.warning(str(type(e)) + str(e))
@@ -84,7 +80,7 @@ async def on_message(message):
 
     # stop monitor
     elif method == "stop":
-        ok = await chats.remove_video(id)
+        ok = await chats.remove_video(id, dc_channel)
         if ok:
             await message.channel.send("OK")
         else:
