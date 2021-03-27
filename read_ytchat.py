@@ -9,7 +9,7 @@ class YTchat:
                  save=False, live=True):
         self.livechat = LiveChatAsync(ytid, callback=self.post)
         if chid:
-            self.id = chid + "." + ytid
+            self.id = str(chid) + "." + ytid
         else:
             self.id = ytid
         self.ytid = ytid
@@ -41,7 +41,7 @@ class YTchat:
                     f.write(c.json() + "\n")
 
             if c.type != "textMessage" or self.normal_msg:
-                logger.debug("send " + str(c.json()))
+                logger.debug(f"{self.id} send {str(c.json())}")
                 await self.send(c)
 
             if self.live:
@@ -66,7 +66,7 @@ class YTchats:
 
     async def remove_video(self, id, channel=""):
         if channel:
-            id = channel + "." + id
+            id = str(channel) + "." + id
         videos = []
         for chat in self.videos:
             logger.debug(f"Remove {chat.id}")
