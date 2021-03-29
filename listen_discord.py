@@ -4,7 +4,7 @@ from datetime import datetime
 from setup import DISCORD_TOKEN, setup_parser, logger
 
 client = discord.Client()
-chats = YTchats()
+chats = YTchats(save=True)
 parser = setup_parser()
 
 
@@ -12,6 +12,8 @@ parser = setup_parser()
 async def on_ready():
     logger.debug(client.guilds)
     logger.info(f"{client.user} has connected to Discord!")
+    for v in chats.videos:
+        v.send = discord_notify(int(v.chid))
     await chats.main()
 
 
@@ -72,7 +74,8 @@ async def on_message(message):
     if method == "start":
         logger.info(f"Sync {id} to {dc_channel}")
         try:
-            chats.add_video(id, dc_channel, discord_notify(dc_channel), save=True)
+            chats.add_video(id, dc_channel, discord_notify(dc_channel),
+                            save=True)
             await message.channel.send(f"OK {id}")
         except BaseException as e:
             logger.warning(str(type(e)) + str(e))

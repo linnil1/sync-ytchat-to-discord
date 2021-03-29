@@ -38,7 +38,7 @@ Demo
 * [x] Monitor multiple videos in same time
 * [x] Add or del videos in command
 * [x] Better design of embed form
-* [ ] Recover after break
+* [-] Recover after break(Now I write id in `./state` not in redis)
+* [-] Write chat into database(Now the chat is appended in each file `./chat/xx.xx.data`)
 * [ ] unit test
 * [ ] user/channel permission
-* [ ] stateful & save id in redis

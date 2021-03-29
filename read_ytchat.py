@@ -12,6 +12,7 @@ class YTchat:
             self.id = str(chid) + "." + ytid
         else:
             self.id = ytid
+        self.chid = chid
         self.ytid = ytid
         self.normal_msg = normal_msg
         self.send = func_send
@@ -34,7 +35,6 @@ class YTchat:
         return self.livechat.raise_for_status()
 
     async def post(self, chatdata):
-        logger.debug("test")
         for c in chatdata.items:
             if self.save:
                 with open(self.folder + self.id + ".data", "a") as f:
@@ -57,8 +57,30 @@ async def console_print(c, text_only=False):
 
 
 class YTchats:
-    def __init__(self):
+    def __init__(self, state=True, **kwargs):
         self.videos = []
+
+        self.state = state
+        self.state_file = "./state"
+        if state:
+            self.load_state(**kwargs)
+
+    def load_state(self, **kwargs):
+        if not os.path.exists(self.state_file):
+            return
+        logger.info(f"Read last state from {self.state_file}")
+        for id in open("state"):
+            id = id.strip()
+            try:
+                self.add_video(id.split('.')[1], id.split('.')[0], **kwargs)
+            except BaseException as e:
+                logger.warning(str(type(e)) + str(e))
+                logger.warning(f"{id} cannot be added")
+
+    def write_state(self):
+        logger.info(f"Save state to {self.state_file}")
+        with open(self.state_file, "w") as f:
+            f.writelines([i.id for i in self.videos])
 
     def add_video(self, id, channel="", func_send=console_print, **kwargs):
         chat = YTchat(id, channel, func_send, **kwargs)
@@ -94,12 +116,15 @@ class YTchats:
             if len(self.videos) == 0 and not allow_empty:
                 break
 
+            # save state to file
             logger.info("check: " + ",".join([i.id for i in self.videos]))
+            if self.state:
+                self.write_state()
             await asyncio.sleep(10)
 
 
 if __name__ == "__main__":
     chats = YTchats()
-    chats.add_video("fok5dkdbz4A", "123", save=True, live=False)
+    # chats.add_video("fok5dkdbz4A", "123", save=True, live=False)
     loop = asyncio.get_event_loop()
     loop.run_until_complete(chats.main(allow_empty=False))

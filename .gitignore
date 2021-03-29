@@ -1,4 +1,6 @@
 chat/
-*.swp
+state
 env.py
+
+*.swp
 __pycache__
