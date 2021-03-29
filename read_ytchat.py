@@ -7,20 +7,28 @@ from setup import logger
 class YTchat:
     def __init__(self, ytid, chid, func_send, normal_msg=False,
                  save=False, live=True):
+        # main
         self.livechat = LiveChatAsync(ytid, callback=self.post)
         if chid:
             self.id = str(chid) + "." + ytid
         else:
             self.id = ytid
-        self.chid = chid
+
+        # discord channel and post function
+        self.chid = str(chid)
+        self.send = func_send
+
+        # pytchat parameters
         self.ytid = ytid
         self.normal_msg = normal_msg
-        self.send = func_send
-        self.save = save
         self.live = live
+
+        # save the chat
+        self.save = save
         self.folder = "chat/"
         if save:
             os.makedirs(self.folder, exist_ok=True)
+
         logger.info(self.id + " is added")
 
     def is_alive(self):
@@ -28,7 +36,7 @@ class YTchat:
 
     async def close(self):
         logger.info(self.id + " to stopped")
-        await self.send(f"{self.id} is stopped", text_only=True)
+        await self.send(f"{self.ytid} is stopped")
         self.livechat.terminate()
 
     def raise_for_status(self):
@@ -48,8 +56,8 @@ class YTchat:
                 await chatdata.tick_async()
 
 
-async def console_print(c, text_only=False):
-    if text_only:
+async def console_print(c):
+    if type(c) is str:
         logger.info(c)
     else:
         logger.info(f"{c.datetime} {c.author.name}: "
@@ -57,9 +65,9 @@ async def console_print(c, text_only=False):
 
 
 class YTchats:
-    def __init__(self, state=True, **kwargs):
+    def __init__(self, state=False, **kwargs):
         self.videos = []
-
+        # save the list of videos id into files
         self.state = state
         self.state_file = "./state"
         if state:
@@ -91,8 +99,8 @@ class YTchats:
             id = str(channel) + "." + id
         videos = []
         for chat in self.videos:
-            logger.debug(f"Remove {chat.id}")
             if chat.id == id:
+                logger.debug(f"Remove {chat.id}")
                 await chat.close()
             else:
                 videos.append(chat)
@@ -124,7 +132,7 @@ class YTchats:
 
 
 if __name__ == "__main__":
-    chats = YTchats()
+    chats = YTchats(state=True)
     # chats.add_video("fok5dkdbz4A", "123", save=True, live=False)
     loop = asyncio.get_event_loop()
     loop.run_until_complete(chats.main(allow_empty=False))

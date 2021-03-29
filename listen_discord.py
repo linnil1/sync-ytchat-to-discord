@@ -4,7 +4,7 @@ from datetime import datetime
 from setup import DISCORD_TOKEN, setup_parser, logger
 
 client = discord.Client()
-chats = YTchats(save=True)
+chats = YTchats(state=True, save=True)
 parser = setup_parser()
 
 
@@ -12,22 +12,25 @@ parser = setup_parser()
 async def on_ready():
     logger.debug(client.guilds)
     logger.info(f"{client.user} has connected to Discord!")
+    # Overwrite the post function after Discord client initized
     for v in chats.videos:
         v.send = discord_notify(int(v.chid))
     await chats.main()
 
 
 def discord_notify(channel):
-    async def send(c, text_only=False):
-        if text_only:
+    async def send(c):
+        if type(c) is str:
             await client.get_channel(channel).send(c)
             return
 
         # If new member: message = join message
         if c.amountString:
             text = f"[{c.amountString}]\n{c.message}"
-        else:
+        elif c.type != "textMessage":
             text = f"[{c.message}]"
+        else:
+            text = f"{c.message}"
         dtime = datetime.utcfromtimestamp(c.timestamp / 1000)
         # name, color(ARGB) and time
         embed = discord.Embed(title=c.author.name,
@@ -66,6 +69,14 @@ async def on_message(message):
 
     method, id = args.method, args.id
     dc_channel = message.channel.id
+
+    # list monitor list
+    if method == "list":
+        ids = [v.ytid for v in chats.videos if v.chid == str(dc_channel)]
+        await message.channel.send("sync list: " + ",".join(ids))
+        return
+
+    # id cannot be null if user wants to start or stop the chat
     if id is None:
         await message.channel.send("Fail: No video ID provieded")
         return

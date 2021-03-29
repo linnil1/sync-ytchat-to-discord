@@ -17,7 +17,7 @@ def setup_logger():
 def setup_parser():
     parser = argparse.ArgumentParser(description="Sync YTchat to Discord",
                                      usage=".synchat {start,stop} [id]")
-    parser.add_argument('method', choices=["start", "stop"])
+    parser.add_argument('method', choices=["start", "stop", "list"])
     parser.add_argument('id', nargs="?", help="youtube_video_id")
     return parser
 
