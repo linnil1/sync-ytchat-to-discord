@@ -24,6 +24,7 @@ def discord_notify(channel):
             await client.get_channel(channel).send(c)
             return
 
+        logger.debug(f"Print data: {str(c.json())}")
         # If new member: message = join message
         if c.amountString:
             text = f"[{c.amountString}]\n{c.message}"

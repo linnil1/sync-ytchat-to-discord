@@ -49,7 +49,6 @@ class YTchat:
                     f.write(c.json() + "\n")
 
             if c.type != "textMessage" or self.normal_msg:
-                logger.debug(f"{self.id} send {str(c.json())}")
                 await self.send(c)
 
             if self.live:
@@ -60,8 +59,7 @@ async def console_print(c):
     if type(c) is str:
         logger.info(c)
     else:
-        logger.info(f"{c.datetime} {c.author.name}: "
-                    f"{c.amountString} -- {c.message}")
+        logger.debug(f"Print data: {str(c.json())}")
 
 
 class YTchats:
@@ -120,7 +118,7 @@ class YTchats:
 
         # remove offline stream
         for id in fin_chat:
-            await self.remove_video(chat.id)
+            await self.remove_video(id)
 
     def show_status(self):
         logger.info("check: " + ",".join([i.id for i in self.videos]))
@@ -143,5 +141,4 @@ class YTchats:
 if __name__ == "__main__":
     chats = YTchats(state=True)
     # chats.add_video("fok5dkdbz4A", "123", save=True, live=False)
-    loop = asyncio.get_event_loop()
-    loop.run_until_complete(chats.main(allow_empty=False))
+    asyncio.run(chats.main(allow_empty=False))
