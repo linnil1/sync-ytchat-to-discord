@@ -84,12 +84,10 @@ async def on_message(message):
     # start to monitor
     if method == "start":
         logger.info(f"Sync {id} to {dc_channel}")
-        try:
-            chats.add_video(id, dc_channel, discord_notify(dc_channel),
-                            save=True)
+        if chats.add_video(id, dc_channel, discord_notify(dc_channel),
+                           save=True):
             await message.channel.send(f"OK {id}")
-        except BaseException as e:
-            logger.warning(str(type(e)) + str(e))
+        else:
             await message.channel.send(f"Fail to add {id}")
 
     # stop monitor

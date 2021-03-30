@@ -38,7 +38,8 @@ Demo
 * [x] Monitor multiple videos in same time
 * [x] Add or del videos in command
 * [x] Better design of embed form
-* [-] Recover after break(Now I write id in `./state` not in redis)
-* [-] Write chat into database(Now the chat is appended in each file `./chat/xx.xx.data`)
+* [ ] Recover after break(Now I write id in `./state` not in redis)
+* [ ] Write chat into database(Now the chat is appended in each file `./chat/xx.xx.data`)
 * [ ] unit test
 * [ ] user/channel permission
+* [ ] Automatically start to sync the chat from specific channel (This would take lots of works dealing with subscribtion and feeds)

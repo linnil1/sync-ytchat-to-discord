@@ -79,11 +79,7 @@ class YTchats:
         logger.info(f"Read last state from {self.state_file}")
         for id in open("state"):
             id = id.strip()
-            try:
-                self.add_video(id.split('.')[1], id.split('.')[0], **kwargs)
-            except BaseException as e:
-                logger.warning(str(type(e)) + str(e))
-                logger.warning(f"{id} cannot be added")
+            self.add_video(id.split('.')[1], id.split('.')[0], **kwargs)
 
     def write_state(self):
         logger.info(f"Save state to {self.state_file}")
@@ -91,8 +87,14 @@ class YTchats:
             f.writelines([i.id for i in self.videos])
 
     def add_video(self, id, channel="", func_send=console_print, **kwargs):
-        chat = YTchat(id, channel, func_send, **kwargs)
-        self.videos.append(chat)
+        try:
+            chat = YTchat(id, channel, func_send, **kwargs)
+            self.videos.append(chat)
+            return True
+        except BaseException as e:
+            logger.warning(str(type(e)) + str(e))
+            logger.warning(f"{id} cannot be added")
+        return False
 
     async def remove_video(self, id, channel=""):
         if channel:
@@ -109,25 +111,32 @@ class YTchats:
         self.videos = videos
         return True
 
+    async def remove_offline_video(self):
+        # check if finished
+        fin_chat = []
+        for chat in self.videos:
+            if not chat.is_alive():
+                fin_chat.append(chat.id)
+
+        # remove offline stream
+        for id in fin_chat:
+            await self.remove_video(chat.id)
+
+    def show_status(self):
+        logger.info("check: " + ",".join([i.id for i in self.videos]))
+
+        # save state to file
+        if self.state:
+            self.write_state()
+
     async def main(self, allow_empty=True):
         while True:
-            # check if finished
-            fin_chat = []
-            for chat in self.videos:
-                if not chat.is_alive():
-                    fin_chat.append(chat.id)
-
-            # remove offline stream
-            for id in fin_chat:
-                await self.remove_video(chat.id)
+            await self.remove_offline_video()
 
             if len(self.videos) == 0 and not allow_empty:
                 break
 
-            # save state to file
-            logger.info("check: " + ",".join([i.id for i in self.videos]))
-            if self.state:
-                self.write_state()
+            self.show_status()
             await asyncio.sleep(10)
 
 
