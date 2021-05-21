@@ -29,6 +29,8 @@ class YTchat:
         if save:
             os.makedirs(self.folder, exist_ok=True)
 
+        if not self.is_alive():
+            raise ValueError("Is not live")
         logger.info(self.id + " is added")
 
     def is_alive(self):
@@ -49,6 +51,7 @@ class YTchat:
                     f.write(c.json() + "\n")
 
             if c.type != "textMessage" or self.normal_msg:
+                logger.debug("post")
                 await self.send(c)
 
             if self.live:
@@ -70,6 +73,7 @@ class YTchats:
         self.state_file = "./state"
         if state:
             self.load_state(**kwargs)
+            logger.debug(f"State will save to {self.state_file} while checking")
 
     def load_state(self, **kwargs):
         if not os.path.exists(self.state_file):
@@ -80,7 +84,6 @@ class YTchats:
             self.add_video(id.split('.')[1], id.split('.')[0], **kwargs)
 
     def write_state(self):
-        logger.info(f"Save state to {self.state_file}")
         with open(self.state_file, "w") as f:
             f.writelines([i.id for i in self.videos])
 
@@ -139,6 +142,8 @@ class YTchats:
 
 
 if __name__ == "__main__":
-    chats = YTchats(state=True)
-    # chats.add_video("fok5dkdbz4A", "123", save=True, live=False)
-    asyncio.run(chats.main(allow_empty=False))
+    async def main():
+        chats = YTchats(state=False)
+        chats.add_video("ejGH1BC1l98", "backup", normal_msg=True, save=True, live=False)
+        await chats.main(allow_empty=True)
+    asyncio.run(main())
