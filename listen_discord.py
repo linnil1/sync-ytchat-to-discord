@@ -3,8 +3,11 @@ from read_ytchat import YTchats
 from datetime import datetime
 from setup import DISCORD_TOKEN, setup_parser, logger
 
+state_file = "./state"
+chat_folder = "chat"
 client = discord.Client()
-chats = YTchats(state=True, save=True)
+chats = YTchats(state=True, save=True,
+                state_file=state_file, chat_folder=chat_folder)
 parser = setup_parser()
 
 
@@ -86,7 +89,7 @@ async def on_message(message):
     if method == "start":
         logger.info(f"Sync {id} to {dc_channel}")
         if chats.add_video(id, dc_channel, discord_notify(dc_channel),
-                           save=True):
+                           save=True, chat_folder=chat_folder):
             await message.channel.send(f"OK {id}")
         else:
             await message.channel.send(f"Fail to add {id}")

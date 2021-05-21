@@ -6,7 +6,7 @@ from setup import logger
 
 class YTchat:
     def __init__(self, ytid, chid, func_send, normal_msg=False,
-                 save=False, live=True):
+                 save=False, live=True, chat_folder="chat"):
         # main
         self.livechat = LiveChatAsync(ytid, callback=self.post)
         if chid:
@@ -25,7 +25,7 @@ class YTchat:
 
         # save the chat
         self.save = save
-        self.folder = "chat/"
+        self.folder = chat_folder + "/"
         if save:
             os.makedirs(self.folder, exist_ok=True)
 
@@ -66,11 +66,11 @@ async def console_print(c):
 
 
 class YTchats:
-    def __init__(self, state=False, **kwargs):
+    def __init__(self, state=False, state_file="./state", **kwargs):
         self.videos = []
         # save the list of videos id into files
         self.state = state
-        self.state_file = "./state"
+        self.state_file = state_file
         if state:
             self.load_state(**kwargs)
             logger.debug(f"State will save to {self.state_file} while checking")
